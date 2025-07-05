@@ -24,6 +24,17 @@ on the root
 docker compose up --build
 ```
 
+Or if you want to run it in development mode:
+
+```commandline
+# Create a .env.local file with the necessary environment variables
+export $(cat .env.local | xargs)
+docker compose -f docker-compose-dev.yml up
+python manage.py migrate
+python manage.py createsuperuser
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
 ### Documentation
 * http://127.0.0.1/api/auth/openapi (Swagger)
 * http://127.0.0.1/api/auth/openapi.json (openapi)

@@ -1,4 +1,4 @@
-from pydantic import EmailStr, Field, root_validator
+from pydantic import model_validator, EmailStr, Field
 
 from .base import Model
 from .mixins import IdMixin
@@ -38,11 +38,12 @@ class UserResponse(UserCreated):
     Умеет распаршивать модель UserInDB
     """
 
-    login: str | None
-    role: str | None
+    login: str | None = None
+    role: str | None = None
     rules: list[str] = Field(default_factory=list)
 
-    @root_validator(pre=True)
+    @classmethod
+    @model_validator(mode="before")
     def set_rules(cls, values: dict) -> dict:
         role = values.get("role", {})
         if isinstance(role, RoleInDB):
@@ -55,8 +56,8 @@ class UserResponse(UserCreated):
 class UserInDB(UserCreated):
     """Модель пользователя в БД."""
 
-    login: str | None
-    role: RoleInDB | None
+    login: str | None = None
+    role: RoleInDB | None = None
 
 
 class UserUpdate(BaseUser, PersonalUser):
