@@ -36,8 +36,8 @@ if settings.jaeger_trace:
     FastAPIInstrumentor.instrument_app(app)
     RedisInstrumentor().instrument()
 
-    if not settings.debug:
-        # Делаем Header-поле X-Request-Id обязательным
-        app.middleware("http")(required_request_id)
+if not settings.debug:
+    # Делаем Header-поле X-Request-Id обязательным
+    app.middleware("http")(required_request_id)
 
 app.include_router(api_router, prefix="/api")
