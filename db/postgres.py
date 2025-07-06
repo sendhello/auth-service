@@ -10,7 +10,7 @@ Base = declarative_base()
 
 # Создаём движок
 # Настройки подключения к БД передаём из переменных окружения, которые заранее загружены в файл настроек
-engine = create_async_engine(settings.pg_dsn, echo=settings.debug, future=True)
+engine = create_async_engine(settings.pg_dsn.encoded_string(), echo=settings.debug, future=True)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 if settings.jaeger_trace:

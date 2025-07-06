@@ -19,10 +19,10 @@ class UserInfo(Model):
     """Данные сервиса oauth2"""
 
     id: str
-    email: EmailStr | None
-    verified_email: bool | None
-    name: str | None
-    given_name: str | None
-    family_name: str | None
-    picture: str | None
-    locale: str | None
+    email: EmailStr | None = None
+    verified_email: bool | None = None
+    name: str | None = None
+    given_name: str | None = None
+    family_name: str | None = None
+    picture: str | None = None
+    locale: str | None = None

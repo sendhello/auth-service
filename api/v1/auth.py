@@ -83,7 +83,7 @@ async def logout(
     await redis.expire(access_key, time=access_token_expires)
 
     user_claim = await authorize.get_raw_jwt()
-    current_user = UserResponse.parse_obj(user_claim)
+    current_user = UserResponse.model_validate(user_claim)
     user_agent_hash = md5(user_agent.encode()).hexdigest()
     refresh_key = f"refresh.{current_user.id}.{user_agent_hash}"
     await redis.delete(refresh_key)
