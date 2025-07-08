@@ -28,7 +28,7 @@ Or if you want to run it in development mode:
 
 ```commandline
 # Create a .env.local file with the necessary environment variables
-export $(cat .env.local | xargs)
+export $(grep -v -E '^\s*(#|$)' .env.local | xargs)
 docker compose -f docker-compose-dev.yml up
 python manage.py migrate
 python manage.py createsuperuser
