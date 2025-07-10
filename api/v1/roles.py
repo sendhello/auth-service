@@ -3,10 +3,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
-from models import Role, Rules
-from schemas import RoleCreate, RoleInDB, RoleUpdate
 from sqlalchemy.exc import IntegrityError
 from starlette import status
+
+from models import Role, Rules
+from schemas import RoleCreate, RoleInDB, RoleUpdate
 
 from ..utils import PaginateQueryParams
 

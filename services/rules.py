@@ -1,6 +1,7 @@
+from pydantic.dataclasses import dataclass
+
 from constants import Action, Resource, Service
 from models import Rules
-from pydantic.dataclasses import dataclass
 from schemas import Rule
 from services.utils import get_all_rules
 

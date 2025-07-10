@@ -1,18 +1,19 @@
 from hashlib import md5
 
 from async_fastapi_jwt_auth import AuthJWT
-from core.settings import settings
-from db.redis_db import get_redis
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
-from models import History, User
 from redis.asyncio import Redis
-from schemas import Tokens, UserCreate, UserCreated, UserInDB, UserLogin, UserResponse
-from security import PROTECTED, REFRESH_PROTECTED
 from sqlalchemy.exc import IntegrityError
 from starlette import status
+
+from core.settings import settings
+from db.redis_db import get_redis
+from models import History, User
+from schemas import Tokens, UserCreate, UserCreated, UserInDB, UserLogin, UserResponse
+from security import PROTECTED, REFRESH_PROTECTED
 
 
 router = APIRouter()

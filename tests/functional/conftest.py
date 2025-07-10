@@ -10,11 +10,11 @@ sys.path.insert(0, f"{os.getcwd()}/auth_service")
 
 import pytest
 from fastapi.testclient import TestClient
+
+from main import app
 from models import History, Role, Rules, User
 from models.mixins import CRUDMixin
 from tests.functional.redis import redis
-
-from main import app
 
 
 db = [

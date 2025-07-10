@@ -3,6 +3,7 @@ from typing import Self
 
 import orjson
 from async_fastapi_jwt_auth import AuthJWT
+
 from core.settings import settings
 from db.redis_db import get_redis
 

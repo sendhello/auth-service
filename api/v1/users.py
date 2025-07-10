@@ -2,9 +2,10 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
+from starlette import status
+
 from models import Role, User
 from schemas import UserInDB
-from starlette import status
 
 from ..utils import PaginateQueryParams
 

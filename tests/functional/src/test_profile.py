@@ -1,6 +1,7 @@
 import asyncio
 
 import pytest
+
 from tests.functional.settings import test_settings  # noqa
 from tests.functional.testdata.data import USER
 from tests.functional.utils import get_headers, redis_flush

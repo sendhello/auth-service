@@ -1,15 +1,16 @@
 from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.exceptions import AuthJWTException
-from db.redis_db import get_redis
 from fastapi import Depends
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
-from models.role import Rules
 from redis.asyncio import Redis
+from starlette import status
+
+from db.redis_db import get_redis
+from models.role import Rules
 from schemas import UserResponse
 from security.rate_limit import is_rate_limit_exceeded
-from starlette import status
 
 
 async def full_protected(
