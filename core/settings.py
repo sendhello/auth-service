@@ -45,8 +45,8 @@ class Settings(PostgresSettings):
 
     # Настройки AuthJWT
     authjwt_secret_key: str = "secret"
-    authjwt_access_token_expires: timedelta = timedelta(minutes=15)
-    authjwt_refresh_token_expires: timedelta = timedelta(days=30)
+    authjwt_access_token_expires_minutes: int | None = None
+    authjwt_refresh_token_expires_days: int | None = None
 
     # Настройки Google Auth
     google_redirect_uri: str = "http://localhost:8000/google/auth"
@@ -60,6 +60,20 @@ class Settings(PostgresSettings):
 
     # Настройки лимитирования запросов
     request_limit: int = 20
+
+    @property
+    def authjwt_access_token_expires(self) -> timedelta:
+        if self.authjwt_access_token_expires_minutes is not None:
+            return timedelta(minutes=self.authjwt_access_token_expires_minutes)
+
+        return timedelta(minutes=15)
+
+    @property
+    def authjwt_refresh_token_expires(self) -> timedelta:
+        if self.authjwt_refresh_token_expires_days is not None:
+            return timedelta(days=self.authjwt_refresh_token_expires_days)
+
+        return timedelta(days=30)
 
     @property
     def google_client_config(self):
