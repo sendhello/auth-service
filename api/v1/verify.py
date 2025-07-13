@@ -2,18 +2,19 @@ from typing import Annotated
 from uuid import uuid4
 
 from async_fastapi_jwt_auth import AuthJWT
-from constants import ANONYMOUS, Action, Resource, Service
-from db.redis_db import get_redis
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
-from models import History, Rules, User
 from pydantic import EmailStr, ValidationError
 from redis.asyncio import Redis
+from starlette import status
+
+from constants import ANONYMOUS, Action, Resource, Service
+from db.redis_db import get_redis
+from models import History, Rules, User
 from schemas import Rule, UserInDB, UserLogin, UserResponse
 from security import PART_PROTECTED
 from services.rules import rules
-from starlette import status
 
 
 router = APIRouter()

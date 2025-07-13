@@ -1,14 +1,17 @@
 from typing import Annotated
 
 from async_fastapi_jwt_auth import AuthJWT
-from constants import GOOGLE_SCOPES, SocialType
-from core.settings import settings
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.logger import logger
 from fastapi.responses import RedirectResponse
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
+from sqlalchemy.exc import IntegrityError
+from starlette import status
+
+from constants import GOOGLE_SCOPES, SocialType
+from core.settings import settings
 from models import History, Social, User
 from schemas import (
     GoogleToken,
@@ -19,8 +22,6 @@ from schemas import (
     UserInfo,
     UserResponse,
 )
-from sqlalchemy.exc import IntegrityError
-from starlette import status
 
 
 router = APIRouter()

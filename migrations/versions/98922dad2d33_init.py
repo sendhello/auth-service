@@ -1,18 +1,20 @@
-""""init"
+""" "init"
 
-Revision ID: d758c639905c
+Revision ID: 98922dad2d33
 Revises:
-Create Date: 2023-07-24 12:37:13.540443
+Create Date: 2025-07-08 21:21:26.851436
 
 """
+
 import sqlalchemy as sa
 from alembic import op
-from db import postgres  # noqa
 from sqlalchemy.dialects import postgresql
+
+from db import postgres
 
 
 # revision identifiers, used by Alembic.
-revision = "d758c639905c"
+revision = "98922dad2d33"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,8 +27,8 @@ def upgrade() -> None:
         sa.Column("title", sa.String(length=255), nullable=False),
         sa.Column("rules", postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("id"),
         sa.UniqueConstraint("title"),
@@ -40,8 +42,8 @@ def upgrade() -> None:
         sa.Column("last_name", sa.String(length=50), nullable=True),
         sa.Column("role_id", sa.UUID(), nullable=True),
         sa.Column("id", sa.UUID(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
             ["role_id"],
             ["roles.id"],
@@ -56,8 +58,8 @@ def upgrade() -> None:
         sa.Column("user_agent", sa.String(length=255), nullable=False),
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("id"),
@@ -68,8 +70,8 @@ def upgrade() -> None:
         sa.Column("type", sa.String(length=255), nullable=False),
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("id"),

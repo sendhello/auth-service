@@ -4,8 +4,9 @@ from uuid import UUID
 import orjson
 from async_fastapi_jwt_auth import AuthJWT
 from fastapi.encoders import jsonable_encoder
-from models import Rules
 from pydantic import EmailStr
+
+from models import Rules
 from schemas import UserResponse
 from tests.functional.redis import redis
 from tests.functional.settings import test_settings  # noqa

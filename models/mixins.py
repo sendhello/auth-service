@@ -1,10 +1,11 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Self
 
-from db.postgres import async_session
 from sqlalchemy import Column, DateTime, select
 from sqlalchemy.dialects.postgresql import UUID
+
+from db.postgres import async_session
 
 
 class CRUDMixin:
@@ -56,8 +57,13 @@ class IDMixin:
         unique=True,
         nullable=False,
     )
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, onupdate=datetime.utcnow())
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
 
     @classmethod
     async def get_by_id(cls, id_: UUID) -> Self:

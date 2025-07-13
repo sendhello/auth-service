@@ -3,10 +3,11 @@ from typing import Annotated
 from async_fastapi_jwt_auth import AuthJWT
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
-from models import History, User
-from schemas import HistoryInDB, UserChangePassword, UserResponse, UserUpdate
 from sqlalchemy.exc import IntegrityError
 from starlette import status
+
+from models import History, User
+from schemas import HistoryInDB, UserChangePassword, UserResponse, UserUpdate
 
 from ..utils import PaginateQueryParams
 

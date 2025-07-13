@@ -1,4 +1,4 @@
-from pydantic import model_validator, EmailStr, Field
+from pydantic import EmailStr, Field, model_validator
 
 from .base import Model
 from .mixins import IdMixin

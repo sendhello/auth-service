@@ -11,7 +11,11 @@ services:
       PROJECT_NAME: ${AUTH_PROJECT_NAME}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
-      PG_DSN: ${PG_DSN}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
       SECRET_KEY: ${SECRET_KEY}
       JAEGER_TRACE: ${JAEGER_TRACE}
       JAEGER_AGENT_HOST: ${JAEGER_AGENT_HOST}
@@ -28,11 +32,11 @@ services:
       - "8000"
     depends_on:
       - redis
-      - auth-postgres
+      - postgres
 
-  auth-postgres:
-    container_name: auth-postgres
-    hostname: auth-postgres
+  postgres:
+    container_name: postgres
+    hostname: postgres
     image: postgres:15.2
     networks:
       - network
@@ -41,9 +45,9 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${AUTH_POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - auth_pgdata:/var/lib/postgresql/data/
+      - pg_data:/var/lib/postgresql/data/
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U app -d auth" ]
       interval: 5s
@@ -83,7 +87,7 @@ services:
       - network
 
 volumes:
-  auth_pgdata:
+  pg_data:
   redis_data:
 
 networks:

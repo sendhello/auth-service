@@ -1,4 +1,5 @@
 from fastapi.routing import APIRouter
+
 from security import ONLY_ADMIN, PROTECTED
 
 from .auth import router as auth_router

@@ -1,5 +1,6 @@
-from models import Rules
 from pydantic import Field
+
+from models import Rules
 
 from .base import Model
 from .mixins import IdMixin

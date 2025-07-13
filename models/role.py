@@ -1,9 +1,10 @@
 from enum import Enum
 
-from db.postgres import Base
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
+
+from db.postgres import Base
 
 from .mixins import CRUDMixin, IDMixin
 

@@ -4,8 +4,9 @@ import os
 import subprocess
 
 import typer
-from models import Role, Rules, User
 from sqlalchemy.exc import IntegrityError
+
+from models import Role, Rules, User
 
 
 async def create_user(email: str, password: str) -> User:

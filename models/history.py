@@ -1,9 +1,10 @@
 from typing import Self
 
-from db.postgres import Base, async_session
 from sqlalchemy import Column, ForeignKey, String, select
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
+from db.postgres import Base, async_session
 
 from .mixins import CRUDMixin, IDMixin
 

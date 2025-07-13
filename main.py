@@ -1,15 +1,16 @@
 from contextlib import asynccontextmanager
 
+from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.redis import RedisInstrumentor
+from redis.asyncio import Redis
+
 from api import router as api_router
 from core.settings import settings
 from core.tracer import configure_tracer
 from db import redis_db
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
-from middleware import required_request_id
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.redis import RedisInstrumentor
-from redis.asyncio import Redis
+from middleware import exception_traceback_middleware, required_request_id
 
 
 @asynccontextmanager
@@ -36,8 +37,11 @@ if settings.jaeger_trace:
     FastAPIInstrumentor.instrument_app(app)
     RedisInstrumentor().instrument()
 
-if not settings.debug:
-    # Делаем Header-поле X-Request-Id обязательным
+if settings.debug:
+    # Enable detailed exception traceback in debug mode
+    app.middleware("http")(exception_traceback_middleware)
+else:
+    # Make X-Request-Id header field mandatory
     app.middleware("http")(required_request_id)
 
 app.include_router(api_router, prefix="/api")
