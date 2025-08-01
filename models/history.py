@@ -4,7 +4,7 @@ from sqlalchemy import Column, ForeignKey, String, select
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from db.postgres import Base, async_session
+from db.postgres import Base, get_session
 
 from .mixins import CRUDMixin, IDMixin
 
@@ -22,7 +22,7 @@ class History(Base, IDMixin, CRUDMixin):
 
     @classmethod
     async def get_by_user_id(cls, user_id: UUID, page: int = 1, page_size: int = 20) -> list[Self]:
-        async with async_session() as session:
+        async with get_session() as session:
             request = select(cls).where(cls.user_id == user_id).limit(page_size).offset((page - 1) * page_size)
             result = await session.execute(request)
             entities = result.scalars().all()

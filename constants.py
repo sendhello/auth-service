@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 
 
 ANONYMOUS = "anonymous"
@@ -9,24 +9,40 @@ GOOGLE_SCOPES = [
     "https://www.googleapis.com/auth/userinfo.profile",
 ]
 
-
-class Service(str, Enum):
-    async_api = "async_api"
+DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000000"
 
 
-class Resource(str, Enum):
-    free_movie = "free_movie"  # Фильмы для всех, не требуют регистрацию пользователей
-    users_movie = "users_movie"  # Фильмы для зарегистрированных пользователей
-    subscription_movie = "subscription_movie"  # Фильмы для пользователей с подпиской
-    other = "other"  # Фильмы для всех, не требуют регистрацию пользователей
-
-
-class Action(str, Enum):
-    create = "create"
-    read = "read"
-    update = "update"
-    delete = "delete"
-
-
-class SocialType(str, Enum):
+class SocialType(StrEnum):
     google = "google"
+
+
+class UserStatus(StrEnum):
+    """Enum-like class for user statuses"""
+
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    BLOCKED = "blocked"
+
+
+class MembershipRole(StrEnum):
+    """Enum-like class for membership roles"""
+
+    OWNER = "owner"
+    ADMIN = "admin"
+    DISPATCHER = "dispatcher"
+    COURIER = "courier"
+    VIEWER = "viewer"
+
+
+class Plan(StrEnum):
+    FREE = "free"
+    BASIC = "basic"
+    PREMIUM = "premium"
+    ULTIMATE = "ultimate"
+
+
+class OrgStatus(StrEnum):
+    PENDING = "pending"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    BLOCKED = "blocked"

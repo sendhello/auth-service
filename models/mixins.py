@@ -5,7 +5,8 @@ from typing import Self
 from sqlalchemy import Column, DateTime, select
 from sqlalchemy.dialects.postgresql import UUID
 
-from db.postgres import async_session
+from constants import DEFAULT_ORG_ID
+from db.postgres import get_session
 
 
 class CRUDMixin:
@@ -22,16 +23,20 @@ class CRUDMixin:
 
         return await self.save(commit=commit)
 
-    async def delete(self, commit=True):
-        async with async_session() as session:
+    async def delete(self, commit=True, current_org: str = DEFAULT_ORG_ID):
+        async with get_session(current_org) as session:
             await session.delete(self)
             if commit:
                 await session.commit()
 
         return self
 
-    async def save(self, commit=True):
-        async with async_session() as session:
+    async def save(self, commit=True, current_org: str = DEFAULT_ORG_ID):
+        """Save the current instance to the database.
+
+        In 'current_org' context, it will use the organization ID for multitenancy. Only from token
+        """
+        async with get_session(current_org) as session:
             session.add(self)
             if commit:
                 await session.commit()
@@ -41,7 +46,7 @@ class CRUDMixin:
 
     @classmethod
     async def get_all(cls, page: int = 1, page_size: int = 20) -> list[Self]:
-        async with async_session() as session:
+        async with get_session() as session:
             request = select(cls).limit(page_size).offset((page - 1) * page_size)
             result = await session.execute(request)
             entities = result.scalars().all()
@@ -67,7 +72,7 @@ class IDMixin:
 
     @classmethod
     async def get_by_id(cls, id_: UUID) -> Self:
-        async with async_session() as session:
+        async with get_session() as session:
             request = select(cls).where(cls.id == id_)
             result = await session.execute(request)
             entity = result.scalars().first()

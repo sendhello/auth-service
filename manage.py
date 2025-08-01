@@ -6,7 +6,7 @@ import subprocess
 import typer
 from sqlalchemy.exc import IntegrityError
 
-from models import Role, Rules, User
+from models import User
 
 
 async def create_user(email: str, password: str) -> User:
@@ -20,20 +20,6 @@ async def create_user(email: str, password: str) -> User:
 
     except IntegrityError:
         user = await User.get_by_email(email)
-        return user
-
-    try:
-        role = await Role.create(title="admin")
-
-    except IntegrityError:
-        return user
-
-    rule = Rules.admin_rules
-    role.rules = [rule.value]
-    await role.save()
-
-    user.role = role
-    await user.save()
 
     return user
 
