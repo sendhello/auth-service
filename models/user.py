@@ -1,15 +1,27 @@
 from typing import Self
 
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+from argon2.low_level import Type as Argon2Type
 from sqlalchemy import Column, Enum, ForeignKey, String, select
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import joinedload, relationship
-from werkzeug.security import check_password_hash, generate_password_hash
 
 from constants import UserStatus
 from db.postgres import Base, get_session
 
 from .membership import Membership
 from .mixins import CRUDMixin, IDMixin
+
+
+# Initialize Argon2 password hasher with secure defaults
+ph = PasswordHasher(
+    time_cost=2,
+    memory_cost=65536,  # 64 MiB
+    parallelism=1,
+    hash_len=32,
+    type=Argon2Type.ID,
+)
 
 
 class User(Base, IDMixin, CRUDMixin):
@@ -38,15 +50,22 @@ class User(Base, IDMixin, CRUDMixin):
     ) -> None:
         self.phone = phone
         self.email = email
-        self.password = generate_password_hash(password) if password is not None else None
+        self.password = ph.hash(password) if password is not None else None
         self.first_name = first_name
         self.last_name = last_name
 
     def check_password(self, password: str) -> bool:
-        return check_password_hash(self.password, password)
+        if self.password is None:
+            return False
+        try:
+            ph.verify(self.password, password)
+            return True
+
+        except VerifyMismatchError:
+            return False
 
     async def change_password(self, password: str, commit: bool = True) -> bool:
-        self.password = generate_password_hash(password)
+        self.password = ph.hash(password)
         return await self.save(commit=commit)
 
     @classmethod
