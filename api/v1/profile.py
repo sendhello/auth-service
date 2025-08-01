@@ -15,11 +15,10 @@ from ..utils import PaginateQueryParams
 router = APIRouter()
 
 
-@router.get("/", response_model=UserResponse)
+@router.get("/", response_model=dict)
 async def user(authorize: AuthJWT = Depends()):
     user_claim = await authorize.get_raw_jwt()
-    current_user = UserResponse.parse_obj(user_claim)
-    return current_user
+    return user_claim
 
 
 @router.get("/history", response_model=list[HistoryInDB])
@@ -28,9 +27,8 @@ async def history(
     authorize: AuthJWT = Depends(),
 ) -> list[History]:
     user_claim = await authorize.get_raw_jwt()
-    current_user = UserResponse.parse_obj(user_claim)
     histories = await History.get_by_user_id(
-        user_id=current_user.id,
+        user_id=user_claim["user_id"],
         page=paginate.page,
         page_size=paginate.page_size,
     )
@@ -40,17 +38,14 @@ async def history(
 @router.post("/update", response_model=UserResponse)
 async def change_user(user_update: UserUpdate, authorize: AuthJWT = Depends()):
     user_claim = await authorize.get_raw_jwt()
-    current_user = UserResponse.parse_obj(user_claim)
-
-    db_user = await User.get_by_email(email=current_user.email)
+    db_user = await User.get_by_email(email=user_claim["email"])
     if db_user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect userdata")
 
     if not db_user.check_password(user_update.current_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
 
-    user_dto = jsonable_encoder(user_update)
-    user_dto.pop("current_password")
+    user_dto = user_update.model_dump(exclude_none=True, exclude={"current_password"})
     try:
         user = await db_user.update(**user_dto)
 
@@ -66,9 +61,8 @@ async def change_user(user_update: UserUpdate, authorize: AuthJWT = Depends()):
 @router.post("/change_password", response_model=UserResponse)
 async def change_password(user_change_password: UserChangePassword, authorize: AuthJWT = Depends()):
     user_claim = await authorize.get_raw_jwt()
-    current_user = UserResponse.parse_obj(user_claim)
 
-    db_user = await User.get_by_email(email=current_user.email)
+    db_user = await User.get_by_email(email=user_claim["email"])
     if db_user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect userdata")
 

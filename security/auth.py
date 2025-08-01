@@ -1,16 +1,18 @@
 from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.exceptions import AuthJWTException
-from fastapi import Depends
+from fastapi import Depends, Header
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
 from redis.asyncio import Redis
 from starlette import status
 
+from core.settings import settings
 from db.redis_db import get_redis
-from models.role import Rules
-from schemas import UserResponse
 from security.rate_limit import is_rate_limit_exceeded
+
+
+RULE_PROTECTED_TEXT = "No access to this resource. Please contact your administrator if you believe this is an error."
 
 
 async def full_protected(
@@ -30,42 +32,10 @@ async def full_protected(
 
     access_key = await authorize.get_jwt_subject()
     blocked_access_tokens = await redis.smembers(access_key)
-    if not blocked_access_tokens:
-        return authorize
+    if blocked_access_tokens and current_access_token in blocked_access_tokens:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Signature has blocked")
 
-    if current_access_token not in blocked_access_tokens:
-        return authorize
-
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Signature has blocked")
-
-
-async def partial_protected(
-    authorize: AuthJWT = Depends(),
-    redis: Redis = Depends(get_redis),
-    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
-) -> AuthJWT:
-    try:
-        await authorize.jwt_optional()
-
-    except AuthJWTException as e:
-        raise HTTPException(status_code=e.status_code, detail=str(e))
-
-    current_access_token = credentials.credentials
-    if await is_rate_limit_exceeded(current_access_token):
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many requests")
-
-    access_key = await authorize.get_jwt_subject()
-    if access_key is None:
-        return authorize
-
-    blocked_access_tokens = await redis.smembers(access_key)
-    if not blocked_access_tokens:
-        return authorize
-
-    if current_access_token not in blocked_access_tokens:
-        return authorize
-
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Signature has blocked")
+    return authorize
 
 
 async def refresh_protected(
@@ -90,30 +60,125 @@ async def refresh_protected(
     )
 
 
-async def admin_protected(
-    authorize: AuthJWT = Depends(),
+async def multitenancy_protected(
+    authorize: AuthJWT = Depends(full_protected),
     redis: Redis = Depends(get_redis),
+    x_org_id: str = Header(default=None, alias="X-Org-ID"),
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
-) -> AuthJWT:
-    try:
-        await authorize.jwt_required()
+) -> tuple[AuthJWT, dict, str]:
+    """
+    Multitenancy-aware protection that validates organization access and sets DB context
+    Returns: (authorize, user, org_id)
+    """
+    # Get user claims and validate multitenancy context
+    user_claims = await authorize.get_raw_jwt()
 
-    except AuthJWTException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.message)
+    if x_org_id:
+        if x_org_id not in user_claims["org_roles"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail=f"User does not have access to organization {x_org_id}"
+            )
+        target_org_id = x_org_id
 
-    access_key = await authorize.get_jwt_subject()
-    blocked_access_tokens = await redis.smembers(access_key)
-    current_access_token = credentials.credentials
+    elif user_claims["org"] is not None:
+        target_org_id = user_claims["org"]
 
-    if blocked_access_tokens and current_access_token in blocked_access_tokens:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Signature has blocked")
+    elif user_claims["org_roles"]:
+        # If no X-Org-ID header, use the first available organization
+        target_org_id = next(iter(user_claims["org_roles"]))
 
-    user_claim = await authorize.get_raw_jwt()
-    current_user = UserResponse.parse_obj(user_claim)
-    if current_user.role is None:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No organization context available")
 
-    if Rules.admin_rules not in current_user.rules:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
+    return authorize, user_claims, target_org_id
 
-    return authorize
+
+async def role_required(
+    required_roles: list[str], auth_data: tuple[AuthJWT, dict, str] = Depends(multitenancy_protected)
+) -> tuple[AuthJWT, dict, str]:
+    """
+    Dependency factory for role-based authorization
+    Usage: Depends(role_required(["admin", "owner"]))
+    """
+    authorize, user_claims, org_id = auth_data
+
+    user_roles = user_claims["org_roles"].get(org_id, [])
+    if not any(role in user_roles for role in required_roles):
+        detail = (
+            f"Required roles: {required_roles}. User roles: {user_roles}" if settings.debug else RULE_PROTECTED_TEXT
+        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+
+    return authorize, user_claims, org_id
+
+
+async def owner_required(auth_data: tuple[AuthJWT, dict, str] = Depends(multitenancy_protected)):
+    authorize, user_claims, org_id = auth_data
+    user_roles = user_claims["org_roles"].get(org_id, [])
+    if not any(role in user_roles for role in ["owner"]):
+        detail = f"Required roles: {["owner"]}. User roles: {user_roles}" if settings.debug else RULE_PROTECTED_TEXT
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+
+    return authorize, user_claims, org_id
+
+
+async def admin_required(auth_data: tuple[AuthJWT, dict, str] = Depends(multitenancy_protected)):
+    authorize, user_claims, org_id = auth_data
+    user_roles = user_claims["org_roles"].get(org_id, [])
+    if not any(role in user_roles for role in ["admin", "owner"]):
+        detail = (
+            f"Required roles: {["admin", "owner"]}. User roles: {user_roles}" if settings.debug else RULE_PROTECTED_TEXT
+        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+
+    return authorize, user_claims, org_id
+
+
+async def dispatcher_required(auth_data: tuple[AuthJWT, dict, str] = Depends(multitenancy_protected)):
+    authorize, user_claims, org_id = auth_data
+    user_roles = user_claims["org_roles"].get(org_id, [])
+    if not any(role in user_roles for role in ["dispatcher", "admin", "owner"]):
+        detail = (
+            f"Required roles: {["dispatcher", "admin", "owner"]}. User roles: {user_roles}"
+            if settings.debug
+            else RULE_PROTECTED_TEXT
+        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+
+    return authorize, user_claims, org_id
+
+
+async def courier_required(auth_data: tuple[AuthJWT, dict, str] = Depends(multitenancy_protected)):
+    authorize, user_claims, org_id = auth_data
+    user_roles = user_claims["org_roles"].get(org_id, [])
+    if not any(role in user_roles for role in ["courier", "dispatcher", "admin", "owner"]):
+        detail = (
+            f"Required roles: {["courier", "dispatcher", "admin", "owner"]}. User roles: {user_roles}"
+            if settings.debug
+            else RULE_PROTECTED_TEXT
+        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+
+    return authorize, user_claims, org_id
+
+
+def scope_required(required_scopes: list[str]):
+    """
+    Dependency factory for scope-based authorization
+    Usage: Depends(scope_required(["orders:read", "routes:write"]))
+    """
+
+    async def _scope_check(
+        auth_data: tuple[AuthJWT, dict, str] = Depends(multitenancy_protected),
+    ) -> tuple[AuthJWT, dict, str]:
+        authorize, user_claims, org_id = auth_data
+
+        scopes = user_claims["scopes"]
+        missing_scopes = [scope for scope in required_scopes if scope not in scopes]
+        if missing_scopes:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail=f"Missing required scopes: {missing_scopes}"
+            )
+        return authorize, user_claims, org_id
+
+    return _scope_check

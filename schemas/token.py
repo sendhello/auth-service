@@ -1,7 +1,6 @@
 from hashlib import md5
 from typing import Self
 
-import orjson
 from async_fastapi_jwt_auth import AuthJWT
 
 from core.settings import settings
@@ -16,16 +15,17 @@ class Tokens(Model):
     refresh_token: str
 
     @classmethod
-    async def create(cls, authorize: AuthJWT, user: UserResponse, user_agent: str) -> Self:
-        user_claims = orjson.loads(user.json())
+    async def create(cls, authorize: AuthJWT, user_agent: str, user: UserResponse = None, org_id: str = None) -> Self:
+
+        user_claims = user.to_user_claims(current_org_id=org_id)
         user_agent_hash = md5(user_agent.encode()).hexdigest()
 
-        access_key = f"access.{user.id}.{user_agent_hash}"
+        access_key = f"access.{user_claims['user_id']}.{user_agent_hash}"
         access_token = await authorize.create_access_token(
             subject=access_key, user_claims=user_claims, expires_time=settings.authjwt_access_token_expires
         )
 
-        refresh_key = f"refresh.{user.id}.{user_agent_hash}"
+        refresh_key = f"refresh.{user_claims['user_id']}.{user_agent_hash}"
         refresh_token = await authorize.create_refresh_token(
             subject=refresh_key, user_claims=user_claims, expires_time=settings.authjwt_refresh_token_expires
         )

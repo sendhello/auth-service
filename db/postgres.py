@@ -1,26 +1,66 @@
+import logging
+import uuid
+from asyncio import shield
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+from uuid import UUID
+
 import sqlalchemy  # noqa
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
+from constants import DEFAULT_ORG_ID
 from core.settings import settings
 
 
-# Создаём базовый класс для будущих моделей
-Base = declarative_base()
+logger = logging.getLogger(__name__)
 
-# Создаём движок
-# Настройки подключения к БД передаём из переменных окружения, которые заранее загружены в файл настроек
+
+Base = declarative_base()
 engine = create_async_engine(settings.pg_dsn.encoded_string(), echo=settings.debug, future=True)
-async_session = async_sessionmaker(engine, expire_on_commit=False)
+_async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 if settings.jaeger_trace:
     SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
 
 
-async def get_session() -> AsyncSession:
-    async with async_session() as session:
+@asynccontextmanager
+async def get_session(
+    org_id: UUID = DEFAULT_ORG_ID,
+) -> AsyncGenerator[AsyncSession]:
+    """Dependency that provides an async session for database operations."""
+
+    if org_id is None:
+        raise ValueError("org_id must be provided")
+
+    session: AsyncSession = _async_session()
+    xid = uuid.uuid4()
+    try:
+        logger.debug("Transaction BEGIN;", extra={"xid": xid})
+
+        await session.execute(
+            sqlalchemy.text("SELECT set_config('app.org_id', :org_id, false)"),
+            {"org_id": str(org_id) if isinstance(org_id, UUID) else org_id},
+        )
+
         yield session
+        await session.commit()
+        logger.debug("Transaction COMMIT;", extra={"xid": xid})
+
+    except DBAPIError as e:
+        await session.rollback()
+        raise e
+
+    except Exception:
+        await session.rollback()
+        raise
+
+    finally:
+        if session:
+            await shield(session.close())
+            logger.debug("Connection released to pool")
 
 
 async def create_database() -> None:
