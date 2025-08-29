@@ -10,7 +10,6 @@ from .auth import (
     refresh_protected,
 )
 
-
 # Legacy protection dependencies
 TOKEN_PROTECTED = [Depends(full_protected)]
 REFRESH_TOKEN_PROTECTED = [Depends(refresh_protected)]

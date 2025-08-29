@@ -25,9 +25,7 @@ class History(Base, IDMixin, CRUDMixin):
         async with get_session() as session:
             request = select(cls).where(cls.user_id == user_id).limit(page_size).offset((page - 1) * page_size)
             result = await session.execute(request)
-            entities = result.scalars().all()
-
-        return entities
+            return result.scalars().all()
 
     def __repr__(self) -> str:
         return f"<History element {self.user_agent}>"

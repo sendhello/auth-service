@@ -14,7 +14,6 @@ from schemas.membership import MembershipResponse
 from schemas.user import UserResponse
 from security import multitenancy_protected
 
-
 router = APIRouter()
 
 
@@ -51,7 +50,7 @@ async def create_user(
         await session.refresh(new_user_db)
         await session.refresh(new_membership_db)
 
-    user = UserResponse(
+    return UserResponse(
         id=new_user_db.id,
         email=new_user_db.email,
         phone=new_user_db.phone,
@@ -61,7 +60,6 @@ async def create_user(
         status=new_user_db.status,
         memberships=[MembershipResponse.model_validate(new_membership_db, from_attributes=True)],
     )
-    return user
 
 
 @router.get("/", response_model=list[UserInDB])

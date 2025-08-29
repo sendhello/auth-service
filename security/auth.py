@@ -11,7 +11,6 @@ from core.settings import settings
 from db.redis_db import get_redis
 from security.rate_limit import is_rate_limit_exceeded
 
-
 RULE_PROTECTED_TEXT = "No access to this resource. Please contact your administrator if you believe this is an error."
 
 

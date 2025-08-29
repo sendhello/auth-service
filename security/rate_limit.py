@@ -26,7 +26,4 @@ async def is_rate_limit_exceeded(token):
     pipe.expire(key, 60)
     result = await pipe.execute()
     request_number = result[0]
-    if request_number > settings.request_limit:
-        return True
-
-    return False
+    return request_number > settings.request_limit

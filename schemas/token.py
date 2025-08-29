@@ -15,7 +15,9 @@ class Tokens(Model):
     refresh_token: str
 
     @classmethod
-    async def create(cls, authorize: AuthJWT, user_agent: str, user: UserResponse = None, org_id: str = None) -> Self:
+    async def create(
+        cls, authorize: AuthJWT, user_agent: str, user: UserResponse = None, org_id: str | None = None
+    ) -> Self:
 
         user_claims = user.to_user_claims(current_org_id=org_id)
         user_agent_hash = md5(user_agent.encode()).hexdigest()

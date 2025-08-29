@@ -8,7 +8,6 @@ from models import History, User
 from schemas import UserResponse
 from security import TOKEN_PROTECTED, multitenancy_protected
 
-
 router = APIRouter()
 
 

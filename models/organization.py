@@ -37,9 +37,7 @@ class Organization(Base, IDMixin, CRUDMixin):
         async with get_session(current_org_id) as session:
             request = select(cls).where(cls.id == id_)
             result = await session.execute(request)
-            entity = result.scalars().first()
-
-        return entity
+            return result.scalars().first()
 
     @classmethod
     async def get_by_slug(
@@ -50,16 +48,14 @@ class Organization(Base, IDMixin, CRUDMixin):
         async with get_session(org_id) as session:
             request = select(cls).where(cls.slug == slug)
             result = await session.execute(request)
-            organization = result.scalars().first()
-        return organization
+            return result.scalars().first()
 
     @classmethod
     async def get_active_organizations(cls, org_id: UUID) -> list[Self]:
         async with get_session(org_id) as session:
             request = select(cls).where(cls.status == "active")
             result = await session.execute(request)
-            organizations = result.scalars().all()
-        return organizations
+            return result.scalars().all()
 
     def __repr__(self) -> str:
         return f"<Organization {self.name} ({self.slug})>"

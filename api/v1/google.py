@@ -23,7 +23,6 @@ from schemas import (
     UserResponse,
 )
 
-
 router = APIRouter()
 
 

@@ -25,7 +25,6 @@ from security import (
     multitenancy_protected,
 )
 
-
 router = APIRouter()
 
 
@@ -68,11 +67,9 @@ async def create_organization(
         await session.commit()
         await session.refresh(new_org)
 
-    org = OrganizationResponse(
+    return OrganizationResponse(
         id=new_org.id, name=new_org.name, slug=new_org.slug, plan=new_org.plan, status=new_org.status
     )
-
-    return org
 
 
 @router.get("/", response_model=list[OrganizationResponse], dependencies=TOKEN_PROTECTED)
@@ -84,7 +81,7 @@ async def list_organizations(
     authorize, user_claims, current_org = auth_data
 
     organizations = []
-    for org_id in user_claims["org_roles"].keys():
+    for org_id in user_claims["org_roles"]:
         org = await Organization.get_by_id(org_id, org_id)
         if not org:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
@@ -111,7 +108,7 @@ async def get_organization(
 async def update_organization(
     org_id: UUID,
     org_update: OrganizationUpdate,
-    auth_data: tuple[AuthJWT, UserResponse, str] = Depends(multitenancy_protected),
+    auth_data: tuple[AuthJWT, dict, str] = Depends(multitenancy_protected),
 ) -> OrganizationResponse:
     """Update organization details. Requires admin or owner role."""
     authorize, user_claims, current_org = auth_data

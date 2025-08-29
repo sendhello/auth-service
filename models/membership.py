@@ -35,8 +35,7 @@ class Membership(Base, IDMixin, CRUDMixin):
         async with get_session() as session:
             request = select(cls).where(cls.user_id == user_id)
             result = await session.execute(request)
-            memberships = result.scalars().all()
-        return memberships
+            return result.scalars().all()
 
     @classmethod
     async def get_org_memberships(cls, org_id: UUID) -> list[Self]:
@@ -44,8 +43,7 @@ class Membership(Base, IDMixin, CRUDMixin):
         async with get_session() as session:
             request = select(cls).where(cls.org_id == org_id)
             result = await session.execute(request)
-            memberships = result.scalars().all()
-        return memberships
+            return result.scalars().all()
 
     @classmethod
     async def get_membership(cls, org_id: UUID, user_id: UUID) -> Self:
@@ -53,17 +51,15 @@ class Membership(Base, IDMixin, CRUDMixin):
         async with get_session() as session:
             request = select(cls).where(cls.org_id == org_id, cls.user_id == user_id)
             result = await session.execute(request)
-            membership = result.scalars().first()
-        return membership
+            return result.scalars().first()
 
     @classmethod
     async def get_user_primary_membership(cls, user_id: UUID) -> Self:
         """Get user's primary membership"""
         async with get_session() as session:
-            request = select(cls).where(cls.user_id == user_id, cls.is_primary == True)
+            request = select(cls).where(cls.user_id == user_id, cls.is_primary is True)
             result = await session.execute(request)
-            membership = result.scalars().first()
-        return membership
+            return result.scalars().first()
 
     def has_role(self, required_role: str) -> bool:
         """Check if membership has required role or higher"""

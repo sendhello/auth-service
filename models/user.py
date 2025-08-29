@@ -13,7 +13,6 @@ from db.postgres import Base, get_session
 from .membership import Membership
 from .mixins import CRUDMixin, IDMixin
 
-
 # Initialize Argon2 password hasher with secure defaults
 ph = PasswordHasher(
     time_cost=2,
@@ -46,7 +45,7 @@ class User(Base, IDMixin, CRUDMixin):
         email: str,
         first_name: str,
         last_name: str,
-        password: str = None,
+        password: str | None = None,
     ) -> None:
         self.phone = phone
         self.email = email
@@ -73,27 +72,21 @@ class User(Base, IDMixin, CRUDMixin):
         async with get_session() as session:
             request = select(cls).where(cls.login == username)
             result = await session.execute(request)
-            user = result.scalars().unique().first()
-
-        return user
+            return result.scalars().unique().first()
 
     @classmethod
     async def get_by_email(cls, email: str) -> Self:
         async with get_session() as session:
             request = select(cls).options(joinedload(cls.memberships)).where(cls.email == email)
             result = await session.execute(request)
-            user = result.scalars().unique().first()
-
-        return user
+            return result.scalars().unique().first()
 
     @classmethod
     async def get_all(cls, page: int = 1, page_size: int = 20) -> list[Self]:
         async with get_session() as session:
             request = select(cls).options(joinedload(cls.memberships)).limit(page_size).offset((page - 1) * page_size)
             result = await session.execute(request)
-            users = result.scalars().unique().all()
-
-        return users
+            return result.scalars().unique().all()
 
     @classmethod
     async def get_by_id(cls, id_: UUID, without_memberships: bool = False) -> Self:
@@ -104,9 +97,7 @@ class User(Base, IDMixin, CRUDMixin):
 
             request = request.where(cls.id == id_)
             result = await session.execute(request)
-            users = result.scalars().unique().first()
-
-        return users
+            return result.scalars().unique().first()
 
     async def get_memberships(self) -> list:
         """Get all memberships for this user"""
@@ -135,6 +126,4 @@ class Social(Base, IDMixin, CRUDMixin):
         async with get_session() as session:
             request = select(cls).where(cls.social_id == social_id)
             result = await session.execute(request)
-            entity = result.scalars().first()
-
-        return entity
+            return result.scalars().first()

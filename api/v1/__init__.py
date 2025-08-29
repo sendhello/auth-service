@@ -9,7 +9,6 @@ from .profile import router as profile_router
 from .users import router as users_router
 from .verify import router as verify_router
 
-
 router = APIRouter()
 router.include_router(auth_router, prefix="/auth", tags=["Auth"])
 router.include_router(google_router, prefix="/google", tags=["Google Auth"])

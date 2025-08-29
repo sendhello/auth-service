@@ -1,11 +1,11 @@
 import logging
 import uuid
 from asyncio import shield
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 from uuid import UUID
 
-import sqlalchemy  # noqa
+import sqlalchemy
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -13,7 +13,6 @@ from sqlalchemy.orm import declarative_base
 
 from constants import DEFAULT_ORG_ID
 from core.settings import settings
-
 
 logger = logging.getLogger(__name__)
 

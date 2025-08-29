@@ -9,9 +9,10 @@ from sqlalchemy.exc import IntegrityError
 from models import User
 
 
-async def create_user(email: str, password: str) -> User:
+async def create_user(phone: str, email: str, password: str) -> User:
     try:
         user = await User.create(
+            phone=phone,
             email=email,
             password=password,
             first_name="",
@@ -34,6 +35,7 @@ def makemigrations(text: str):
         ["alembic", "revision", "--autogenerate", "-m", f'"{text}"'],
         capture_output=True,
         text=True,
+        check=False,
     )
     print("Log:", result.stdout)
     print("Errors:", result.stderr)
@@ -42,7 +44,7 @@ def makemigrations(text: str):
 @app.command()
 def migrate():
     """Upgrade migration."""
-    result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True, text=True)
+    result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True, text=True, check=False)
     print("Log:", result.stdout)
     print("Errors:", result.stderr)
 
@@ -50,7 +52,7 @@ def migrate():
 @app.command()
 def rollback(migrate_hash: str):
     """Downgrade migration."""
-    result = subprocess.run(["alembic", "downgrade", migrate_hash], capture_output=True, text=True)
+    result = subprocess.run(["alembic", "downgrade", migrate_hash], capture_output=True, text=True, check=False)
     print("Log:", result.stdout)
     print("Errors:", result.stderr)
 
@@ -58,10 +60,11 @@ def rollback(migrate_hash: str):
 @app.command()
 def createsuperuser():
     """Creating super admin."""
+    phone: str = os.getenv("ADMIN_PHONE")
     email: str = os.getenv("ADMIN_EMAIL")
     password: str = os.getenv("ADMIN_PASSWORD")
     loop = asyncio.get_event_loop()
-    super_admin = loop.run_until_complete(create_user(email, password))
+    super_admin = loop.run_until_complete(create_user(phone, email, password))
 
     print(f'Super user "{super_admin.email}" created')
 

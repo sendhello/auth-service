@@ -11,14 +11,12 @@ from schemas import HistoryInDB, UserChangePassword, UserResponse, UserUpdate
 
 from ..utils import PaginateQueryParams
 
-
 router = APIRouter()
 
 
 @router.get("/", response_model=dict)
 async def user(authorize: AuthJWT = Depends()):
-    user_claim = await authorize.get_raw_jwt()
-    return user_claim
+    return await authorize.get_raw_jwt()
 
 
 @router.get("/history", response_model=list[HistoryInDB])
@@ -27,12 +25,11 @@ async def history(
     authorize: AuthJWT = Depends(),
 ) -> list[History]:
     user_claim = await authorize.get_raw_jwt()
-    histories = await History.get_by_user_id(
+    return await History.get_by_user_id(
         user_id=user_claim["user_id"],
         page=paginate.page,
         page_size=paginate.page_size,
     )
-    return histories
 
 
 @router.post("/update", response_model=UserResponse)
