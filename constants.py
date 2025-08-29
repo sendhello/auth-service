@@ -1,6 +1,5 @@
 from enum import StrEnum
 
-
 ANONYMOUS = "anonymous"
 
 GOOGLE_SCOPES = [

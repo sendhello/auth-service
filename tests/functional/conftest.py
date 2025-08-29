@@ -5,7 +5,6 @@ from uuid import UUID
 
 from .testdata.data import ROLE_UUID, USER_UUID
 
-
 sys.path.insert(0, f"{os.getcwd()}/auth_service")
 
 import pytest
@@ -15,7 +14,6 @@ from main import app
 from models import History, Role, Rules, User
 from models.mixins import CRUDMixin
 from tests.functional.redis import redis
-
 
 db = [
     {

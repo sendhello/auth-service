@@ -17,7 +17,6 @@ from schemas import Tokens, UserCreated, UserLogin, UserRegistration, UserRespon
 from schemas.membership import MembershipResponse
 from security import REFRESH_TOKEN_PROTECTED, TOKEN_PROTECTED
 
-
 router = APIRouter()
 
 
@@ -124,13 +123,9 @@ async def refresh(
 
     # Handle organization switching during refresh
     target_org = None
-    if x_org_id and x_org_id in user_claims["org_roles"]:
-        target_org = x_org_id
-    else:
-        target_org = user_claims["org"]
+    target_org = x_org_id if x_org_id and x_org_id in user_claims["org_roles"] else user_claims["org"]
 
     user_db = await User.get_by_id(UUID(user_claims["user_id"]))
     user = UserResponse.model_validate(user_db, from_attributes=True)
 
-    tokens = await Tokens.create(authorize=authorize, user=user, user_agent=user_agent, org_id=target_org)
-    return tokens
+    return await Tokens.create(authorize=authorize, user=user, user_agent=user_agent, org_id=target_org)

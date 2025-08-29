@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Self
 
 from sqlalchemy import Column, DateTime, select
@@ -49,9 +49,7 @@ class CRUDMixin:
         async with get_session() as session:
             request = select(cls).limit(page_size).offset((page - 1) * page_size)
             result = await session.execute(request)
-            entities = result.scalars().all()
-
-        return entities
+            return result.scalars().all()
 
 
 class IDMixin:
@@ -62,11 +60,11 @@ class IDMixin:
         unique=True,
         nullable=False,
     )
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -75,6 +73,4 @@ class IDMixin:
         async with get_session() as session:
             request = select(cls).where(cls.id == id_)
             result = await session.execute(request)
-            entity = result.scalars().first()
-
-        return entity
+            return result.scalars().first()

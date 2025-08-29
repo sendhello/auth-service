@@ -6,9 +6,8 @@ from tests.functional.settings import test_settings  # noqa
 from tests.functional.testdata.data import USER
 from tests.functional.utils import generate_tokens, get_headers, redis_flush
 
-
 loop = asyncio.get_event_loop()
-pytestmark = pytest.mark.asyncio  # noqa
+pytestmark = pytest.mark.asyncio
 
 
 @pytest.mark.parametrize(

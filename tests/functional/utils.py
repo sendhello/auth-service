@@ -31,7 +31,7 @@ async def generate_tokens(user: dict, authorize: AuthJWT = AuthJWT(), user_agent
     }
 
 
-async def get_headers(user: dict = None):
+async def get_headers(user: dict | None = None):
     header = {"X-Request-Id": "abcdefgh"}
     if user is None:
         return header
