@@ -9,9 +9,10 @@ from sqlalchemy.exc import IntegrityError
 from models import User
 
 
-async def create_user(email: str, password: str) -> User:
+async def create_user(phone: str, email: str, password: str) -> User:
     try:
         user = await User.create(
+            phone=phone,
             email=email,
             password=password,
             first_name="",
@@ -58,10 +59,11 @@ def rollback(migrate_hash: str):
 @app.command()
 def createsuperuser():
     """Creating super admin."""
+    phone: str = os.getenv("ADMIN_PHONE")
     email: str = os.getenv("ADMIN_EMAIL")
     password: str = os.getenv("ADMIN_PASSWORD")
     loop = asyncio.get_event_loop()
-    super_admin = loop.run_until_complete(create_user(email, password))
+    super_admin = loop.run_until_complete(create_user(phone, email, password))
 
     print(f'Super user "{super_admin.email}" created')
 

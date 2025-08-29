@@ -1,7 +1,7 @@
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import Column, Enum, String, select
+from sqlalchemy import Column, Enum, String, select, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from constants import OrgStatus, Plan

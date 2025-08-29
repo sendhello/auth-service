@@ -102,11 +102,9 @@ def downgrade() -> None:
     op.drop_index("idx_memberships_user_id")
 
     # Drop RLS policies
-    op.execute("DROP POLICY IF EXISTS org_isolation_memberships ON memberships")
     op.execute("DROP POLICY IF EXISTS org_isolation_organizations ON organizations")
 
     # Disable RLS
-    op.execute("ALTER TABLE memberships DISABLE ROW LEVEL SECURITY")
     op.execute("ALTER TABLE organizations DISABLE ROW LEVEL SECURITY")
 
     # Add back role_id column to users table

@@ -111,7 +111,7 @@ async def get_organization(
 async def update_organization(
     org_id: UUID,
     org_update: OrganizationUpdate,
-    auth_data: tuple[AuthJWT, UserResponse, str] = Depends(multitenancy_protected),
+    auth_data: tuple[AuthJWT, dict, str] = Depends(multitenancy_protected),
 ) -> OrganizationResponse:
     """Update organization details. Requires admin or owner role."""
     authorize, user_claims, current_org = auth_data
