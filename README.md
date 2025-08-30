@@ -4,6 +4,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115.14-green.svg)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE.md)
 [![Tests](https://github.com/sendhello/auth-service/workflows/Tests/badge.svg)](https://github.com/sendhello/auth-service/actions)
+[![CodeQL](https://github.com/sendhello/auth-service/actions/workflows/codeql.yml/badge.svg)](https://github.com/sendhello/auth-service/actions/workflows/codeql.yml)
 
 A comprehensive authentication and authorization microservice built with FastAPI, designed for modern multi-tenant applications within the RooRoute platform.
 
