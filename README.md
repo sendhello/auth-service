@@ -352,27 +352,27 @@ tests/
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DEBUG` | `false` | Enable debug mode |
-| `PROJECT_NAME` | `Auth Service` | Service name (displayed in docs) |
-| `POSTGRES_HOST` | `localhost` | PostgreSQL hostname |
-| `POSTGRES_PORT` | `5432` | PostgreSQL port |
-| `POSTGRES_DB` | `auth` | Database name |
-| `POSTGRES_APP_USER` | `app` | Application database user |
-| `POSTGRES_APP_PASSWORD` | - | Application database password |
-| `REDIS_HOST` | `localhost` | Redis hostname |
-| `REDIS_PORT` | `6379` | Redis port |
-| `AUTHJWT_SECRET_KEY` | `secret` | JWT signing secret |
-| `AUTHJWT_ACCESS_TOKEN_EXPIRES_MINUTES` | `15` | Access token lifetime (minutes) |
-| `AUTHJWT_REFRESH_TOKEN_EXPIRES_DAYS` | `30` | Refresh token lifetime (days) |
-| `GOOGLE_CLIENT_ID` | - | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | - | Google OAuth client secret |
-| `GOOGLE_REDIRECT_URI` | - | Google OAuth redirect URI |
-| `JAEGER_TRACE` | `false` | Enable Jaeger tracing |
-| `JAEGER_AGENT_HOST` | `localhost` | Jaeger agent hostname |
-| `JAEGER_AGENT_PORT` | `6831` | Jaeger agent port |
-| `REQUEST_LIMIT_PER_MINUTE` | `20` | Rate limit (requests per minute) |
+| Variable                               | Default        | Description                      |
+|----------------------------------------|----------------|----------------------------------|
+| `DEBUG`                                | `false`        | Enable debug mode                |
+| `PROJECT_NAME`                         | `Auth Service` | Service name (displayed in docs) |
+| `POSTGRES_HOST`                        | `localhost`    | PostgreSQL hostname              |
+| `POSTGRES_PORT`                        | `5432`         | PostgreSQL port                  |
+| `POSTGRES_DB`                          | `auth`         | Database name                    |
+| `POSTGRES_APP_USER`                    | `app`          | Application database user        |
+| `POSTGRES_APP_PASSWORD`                | -              | Application database password    |
+| `REDIS_HOST`                           | `localhost`    | Redis hostname                   |
+| `REDIS_PORT`                           | `6379`         | Redis port                       |
+| `AUTHJWT_SECRET_KEY`                   | `secret`       | JWT signing secret               |
+| `AUTHJWT_ACCESS_TOKEN_EXPIRES_MINUTES` | `15`           | Access token lifetime (minutes)  |
+| `AUTHJWT_REFRESH_TOKEN_EXPIRES_DAYS`   | `30`           | Refresh token lifetime (days)    |
+| `GOOGLE_CLIENT_ID`                     | -              | Google OAuth client ID           |
+| `GOOGLE_CLIENT_SECRET`                 | -              | Google OAuth client secret       |
+| `GOOGLE_REDIRECT_URI`                  | -              | Google OAuth redirect URI        |
+| `JAEGER_TRACE`                         | `false`        | Enable Jaeger tracing            |
+| `JAEGER_AGENT_HOST`                    | `localhost`    | Jaeger agent hostname            |
+| `JAEGER_AGENT_PORT`                    | `6831`         | Jaeger agent port                |
+| `REQUEST_LIMIT_PER_MINUTE`             | `20`           | Rate limit (requests per minute) |
 
 ### Default Admin User
 
