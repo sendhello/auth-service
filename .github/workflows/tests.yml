@@ -1,0 +1,91 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.13]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache Poetry installation
+      uses: actions/cache@v4
+      with:
+        path: ~/.local
+        key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        installer-parallel: true
+
+    - name: Cache dependencies
+      id: cache-deps
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: pydeps-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      run: poetry install --no-interaction --no-ansi
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+
+    - name: Run tests
+      env:
+        # Test database configuration
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
+        POSTGRES_DB: test_auth
+        POSTGRES_APP_USER: test_user
+        POSTGRES_APP_PASSWORD: test_pass
+        POSTGRES_MIGRATE_USER: test_migrate
+        POSTGRES_MIGRATE_PASSWORD: test_migrate_pass
+        
+        # Redis configuration
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+        
+        # JWT configuration for tests
+        AUTHJWT_SECRET_KEY: test_secret_key
+        
+        # Other test settings
+        DEBUG: true
+        JAEGER_TRACE: false
+        REQUEST_LIMIT_PER_MINUTE: 100
+        
+        # Google OAuth (dummy values for tests)
+        GOOGLE_CLIENT_ID: dummy_client_id
+        GOOGLE_CLIENT_SECRET: dummy_client_secret
+        GOOGLE_REDIRECT_URI: http://localhost:8000/api/v1/google/auth_return
+        
+        # Admin user for tests
+        ADMIN_PHONE: "0000000000"
+        ADMIN_EMAIL: admin@example.com
+        ADMIN_PASSWORD: admin123
+      run: |
+        poetry run pytest tests/ -v --tb=short --cov=. --cov-report=term-missing --cov-report=xml
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      if: matrix.python-version == 3.13
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
