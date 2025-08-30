@@ -5,7 +5,7 @@ services:
   auth_postgres:
     container_name: auth_postgres
     hostname: auth_postgres
-    image: postgres:15.2
+    image: postgres:16
     networks:
       - network
     ports:
@@ -14,40 +14,60 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     volumes:
       - pg_data:/var/lib/postgresql/data/
+    restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U app -d auth" ]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   redis:
     container_name: redis
     hostname: redis
-    image: redis:7.2-rc1
+    image: redis:7.4-alpine
+    command: redis-server --appendonly yes
     environment:
-      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+      REDIS_DISABLE_COMMANDS: FLUSHDB,FLUSHALL,DEBUG
     volumes:
       - redis_data:/data
     ports:
       - "6379:6379"
     networks:
       - network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   jaeger:
     container_name: jaeger
     hostname: jaeger
-    image: jaegertracing/all-in-one:latest
+    image: jaegertracing/all-in-one:1.55
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+      COLLECTOR_ZIPKIN_HOST_PORT: :9411
     ports:
       - "6831:6831/udp"
       - "16686:16686"
+      - "14250:14250"  # gRPC
+      - "14268:14268"  # HTTP
+      - "9411:9411"    # Zipkin
     networks:
       - network
+    restart: unless-stopped
 
 volumes:
   pg_data:
+    driver: local
   redis_data:
+    driver: local
 
 networks:
   network:
+    driver: bridge

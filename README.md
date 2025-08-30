@@ -137,7 +137,7 @@ The service will be available at `http://localhost:8000`
 
 3. **Install dependencies with Poetry**
    ```bash
-   poetry install
+   poetry install --no-root
    ```
 
 4. **Set up environment variables**
@@ -396,7 +396,7 @@ To run the same checks locally as in CI:
 
 ```bash
 # Install dependencies
-poetry install
+poetry install --no-root
 
 # Run linting
 poetry run ruff check .
