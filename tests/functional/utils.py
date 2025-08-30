@@ -4,9 +4,8 @@ from uuid import UUID
 import orjson
 from async_fastapi_jwt_auth import AuthJWT
 from fastapi.encoders import jsonable_encoder
-from pydantic import EmailStr
 
-from models import Rules
+# Rules import removed - using membership-based system now
 from schemas import UserResponse
 from tests.functional.redis import redis
 from tests.functional.settings import test_settings  # noqa
@@ -45,11 +44,10 @@ async def get_headers(user: dict | None = None):
 async def get_admin_headers():
     admin = UserResponse(
         id=UUID("345fa6c5-c138-4f5c-bce5-a35b0f26fced"),
-        email=EmailStr("admin@example.com"),
-        first_name="",
-        last_name="",
-        role="super_admin",
-        rules=[Rules.admin_rules],
+        email="admin@example.com",
+        phone="0123456789",
+        first_name="Admin",
+        last_name="User",
     )
     tokens = await generate_tokens(jsonable_encoder(admin))
     access_token = tokens["access_token"]

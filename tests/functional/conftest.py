@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 from uuid import UUID
 
-from .testdata.data import ROLE_UUID, USER_UUID
+from .testdata.data import USER_UUID
 
 sys.path.insert(0, f"{os.getcwd()}/auth_service")
 
@@ -11,13 +11,14 @@ import pytest
 from fastapi.testclient import TestClient
 
 from main import app
-from models import History, Role, Rules, User
+from models import History, Membership, User
 from models.mixins import CRUDMixin
 from tests.functional.redis import redis
 
 db = [
     {
         "email": "test@test.ru",
+        "phone": "0123456789",
         "password": "password",
         "first_name": "Тест",
         "last_name": "Тестов",
@@ -53,6 +54,7 @@ def mock_user_get_by_email():
     async def inner(email: str):
         user = User(**db[0])
         user.id = UUID(USER_UUID)
+        user.status = "active"
         return user
 
     return inner
@@ -107,34 +109,9 @@ def mock_user_get_all():
 
 
 @pytest.fixture
-def mock_role_get_by_id():
-    async def inner(id_: str):
-        role = Role(title="manager")
-        role.id = UUID(ROLE_UUID)
-        role.rules = [Rules.user_rules.value]
-        return role
-
-    return inner
-
-
-@pytest.fixture
-def mock_role_get_all():
-    async def inner(page, page_size):
-        role = Role(title="manager")
-        role.id = UUID(ROLE_UUID)
-        role.rules = [Rules.user_rules.value]
-        return [role]
-
-    return inner
-
-
-@pytest.fixture
-def mock_get_role():
-    async def inner(self, commit=True):
-        role = Role(title="manager")
-        role.id = UUID(ROLE_UUID)
-        role.rules = [Rules.user_rules.value]
-        return role
+def mock_membership_get_user_memberships():
+    async def inner(user_id: UUID):
+        return []
 
     return inner
 
@@ -162,10 +139,8 @@ def client(
     mock_user_check_password,
     mock_user_change_password,
     mock_user_get_all,
+    mock_membership_get_user_memberships,
     mock_get_user,
-    mock_role_get_by_id,
-    mock_role_get_all,
-    mock_get_role,
     mock_history_get_by_user_id,
 ):
     # monkeypatch.setattr('schemas.token.get_redis', mock_redis)
@@ -177,9 +152,7 @@ def client(
     monkeypatch.setattr(User, "check_password", mock_user_check_password)
     monkeypatch.setattr(User, "change_password", mock_user_change_password)
     monkeypatch.setattr(User, "get_all", mock_user_get_all)
-    monkeypatch.setattr(Role, "get_by_id", mock_role_get_by_id)
-    monkeypatch.setattr(Role, "get_all", mock_role_get_all)
-    monkeypatch.setattr(Role, "delete", mock_get_role)
+    monkeypatch.setattr(Membership, "get_user_memberships", mock_membership_get_user_memberships)
     monkeypatch.setattr(History, "get_by_user_id", mock_history_get_by_user_id)
 
     return TestClient(app)

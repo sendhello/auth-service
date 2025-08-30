@@ -2,7 +2,8 @@
 
 [![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3130/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115.14-green.svg)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE.md)
+[![Tests](https://github.com/sendhello/auth-service/workflows/Tests/badge.svg)](https://github.com/sendhello/auth-service/actions)
 
 A comprehensive authentication and authorization microservice built with FastAPI, designed for modern multi-tenant applications within the RooRoute platform.
 
@@ -17,8 +18,10 @@ A comprehensive authentication and authorization microservice built with FastAPI
 - [API Documentation](#api-documentation)
 - [Development](#development)
 - [Testing](#testing)
+- [Continuous Integration](#continuous-integration)
 - [Environment Variables](#environment-variables)
 - [Deployment](#deployment)
+- [Security](#security)
 - [Contributing](#contributing)
 - [License](#license)
 - [Authors](#authors)
@@ -132,11 +135,9 @@ The service will be available at `http://localhost:8000`
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
 
-3. **Install dependencies**
+3. **Install dependencies with Poetry**
    ```bash
-   pip install -r requirements.txt
-   # or if using poetry
-   poetry install
+   poetry install --no-root
    ```
 
 4. **Set up environment variables**
@@ -297,26 +298,39 @@ alembic downgrade -1
 
 ```
 auth-service/
-├── api/                    # API endpoints
-│   └── v1/                # API version 1
-│       ├── auth.py        # Authentication endpoints
-│       ├── google.py      # Google OAuth integration
+├── .github/                 # GitHub Actions workflows
+│   └── workflows/           # CI/CD pipeline definitions
+│       └── tests.yml        # Testing and security scanning
+|       └── lint.yml         # Linting and type checking
+|       └── security.yml     # Security scanning
+|       └── types.yml        # Type checking
+├── api/                     # API endpoints
+│   └── v1/                  # API version 1
+│       ├── auth.py          # Authentication endpoints
+│       ├── google.py        # Google OAuth integration
 │       ├── organizations.py # Organization management
-│       ├── profile.py     # User profile management
-│       ├── users.py       # User management (admin)
-│       └── verify.py      # Token verification
-├── core/                  # Core application configuration
-│   ├── settings.py        # Application settings
-│   ├── logger.py          # Logging configuration
-│   └── tracer.py          # Jaeger tracing setup
-├── db/                    # Database configuration
-├── models/                # SQLAlchemy models
-├── schemas/               # Pydantic schemas
-├── security/              # Authentication & authorization
-├── middleware/            # Custom middleware
-├── migrations/            # Database migrations
-├── main.py                # Application entry point
-└── manage.py              # Management commands
+│       ├── profile.py       # User profile management
+│       ├── users.py         # User management (admin)
+│       └── verify.py        # Token verification
+├── core/                    # Core application configuration
+│   ├── settings.py          # Application settings
+│   ├── logger.py            # Logging configuration
+│   └── tracer.py            # Jaeger tracing setup
+├── db/                      # Database configuration
+├── models/                  # SQLAlchemy models
+├── schemas/                 # Pydantic schemas
+├── security/                # Authentication & authorization
+├── middleware/              # Custom middleware
+├── migrations/              # Database migrations
+├── tests/                   # Test suite
+│   ├── functional/          # Functional/integration tests
+│   └── test_basic.py        # Basic unit tests
+├── LICENSE.md               # Apache 2.0 license
+├── SECURITY.md              # Security policy and guidelines
+├── README.md                # Project documentation
+├── pyproject.toml           # Poetry configuration and dependencies
+├── main.py                  # Application entry point
+└── manage.py                # Management commands
 ```
 
 ## Testing
@@ -341,38 +355,91 @@ pytest -n auto
 
 ```
 tests/
-├── functional/            # API endpoint tests
+├── functional/             # API endpoint tests
 │   ├── src/
-│   │   ├── test_auth.py   # Authentication tests
+│   │   ├── test_auth.py    # Authentication tests
 │   │   ├── test_profile.py # Profile management tests
-│   │   └── test_users.py  # User management tests
-│   └── testdata/          # Test fixtures and data
-└── conftest.py            # Test configuration
+│   │   └── test_users.py   # User management tests
+│   └── testdata/           # Test fixtures and data
+├── test_basic.py           # Basic unit tests
+└── conftest.py             # Test configuration
+```
+
+## Continuous Integration
+
+The project uses GitHub Actions for automated testing and quality assurance. The CI pipeline runs on every push and pull request to `main` and `develop` branches.
+
+### CI Pipeline Features
+
+- **Automated Testing**: Runs full test suite with pytest
+- **Code Quality**: Linting with Ruff, type checking with MyPy
+- **Security Scanning**: Bandit security analysis
+- **Code Coverage**: Coverage reporting with Codecov integration
+- **Multi-environment**: Tests against PostgreSQL 15 and Redis 7.2
+- **Poetry Integration**: Uses Poetry for dependency management
+
+### Pipeline Jobs
+
+1. **Test Job**: 
+   - Sets up Python 3.13, PostgreSQL, and Redis
+   - Installs dependencies with Poetry
+   - Runs linting (ruff, mypy, bandit)
+   - Executes test suite with coverage reporting
+
+2. **Security Job**:
+   - Performs security scanning with Bandit
+   - Uploads security reports as artifacts
+
+### Running Locally
+
+To run the same checks locally as in CI:
+
+```bash
+# Install dependencies
+poetry install --no-root
+
+# Run linting
+poetry run ruff check .
+poetry run mypy .
+
+# Run security scan
+poetry run bandit -r . -f json
+
+# Run tests with coverage
+poetry run pytest tests/ -v --cov=. --cov-report=html
 ```
 
 ## Environment Variables
 
-| Variable                               | Default        | Description                      |
-|----------------------------------------|----------------|----------------------------------|
-| `DEBUG`                                | `false`        | Enable debug mode                |
-| `PROJECT_NAME`                         | `Auth Service` | Service name (displayed in docs) |
-| `POSTGRES_HOST`                        | `localhost`    | PostgreSQL hostname              |
-| `POSTGRES_PORT`                        | `5432`         | PostgreSQL port                  |
-| `POSTGRES_DB`                          | `auth`         | Database name                    |
-| `POSTGRES_APP_USER`                    | `app`          | Application database user        |
-| `POSTGRES_APP_PASSWORD`                | -              | Application database password    |
-| `REDIS_HOST`                           | `localhost`    | Redis hostname                   |
-| `REDIS_PORT`                           | `6379`         | Redis port                       |
-| `AUTHJWT_SECRET_KEY`                   | `secret`       | JWT signing secret               |
-| `AUTHJWT_ACCESS_TOKEN_EXPIRES_MINUTES` | `15`           | Access token lifetime (minutes)  |
-| `AUTHJWT_REFRESH_TOKEN_EXPIRES_DAYS`   | `30`           | Refresh token lifetime (days)    |
-| `GOOGLE_CLIENT_ID`                     | -              | Google OAuth client ID           |
-| `GOOGLE_CLIENT_SECRET`                 | -              | Google OAuth client secret       |
-| `GOOGLE_REDIRECT_URI`                  | -              | Google OAuth redirect URI        |
-| `JAEGER_TRACE`                         | `false`        | Enable Jaeger tracing            |
-| `JAEGER_AGENT_HOST`                    | `localhost`    | Jaeger agent hostname            |
-| `JAEGER_AGENT_PORT`                    | `6831`         | Jaeger agent port                |
-| `REQUEST_LIMIT_PER_MINUTE`             | `20`           | Rate limit (requests per minute) |
+| Variable                               | Default             | Description                      |
+|----------------------------------------|---------------------|----------------------------------|
+| `AUTH_PROJECT_NAME`                    | `Auth`              | Service name (displayed in docs) |
+| `DEBUG`                                | `false`             | Enable debug mode                |
+| `POSTGRES_HOST`                        | `postgres`          | PostgreSQL hostname              |
+| `POSTGRES_PORT`                        | `5432`              | PostgreSQL port                  |
+| `POSTGRES_DB`                          | `auth`              | Database name                    |
+| `POSTGRES_USER`                        | `app`               | PostgreSQL superuser             |
+| `POSTGRES_PASSWORD`                    | -                   | PostgreSQL superuser password    |
+| `POSTGRES_APP_USER`                    | `auth_app`          | Application database user        |
+| `POSTGRES_APP_PASSWORD`                | -                   | Application database password    |
+| `POSTGRES_MIGRATE_USER`                | `auth_owner`        | Migration database user          |
+| `POSTGRES_MIGRATE_PASSWORD`            | -                   | Migration database password      |
+| `REDIS_HOST`                           | `redis`             | Redis hostname                   |
+| `REDIS_PORT`                           | `6379`              | Redis port                       |
+| `ALLOW_EMPTY_PASSWORD`                 | `yes`               | Redis empty password setting     |
+| `AUTHJWT_SECRET_KEY`                   | `secret`            | JWT signing secret               |
+| `AUTHJWT_ACCESS_TOKEN_EXPIRES_MINUTES` | `15`                | Access token lifetime (minutes)  |
+| `AUTHJWT_REFRESH_TOKEN_EXPIRES_DAYS`   | `30`                | Refresh token lifetime (days)    |
+| `GOOGLE_CLIENT_ID`                     | -                   | Google OAuth client ID           |
+| `GOOGLE_CLIENT_SECRET`                 | -                   | Google OAuth client secret       |
+| `GOOGLE_REDIRECT_URI`                  | -                   | Google OAuth redirect URI        |
+| `JAEGER_TRACE`                         | `true`              | Enable Jaeger tracing            |
+| `JAEGER_AGENT_HOST`                    | `jaeger`            | Jaeger agent hostname            |
+| `JAEGER_AGENT_PORT`                    | `6831`              | Jaeger agent port                |
+| `REQUEST_LIMIT_PER_MINUTE`             | `20`                | Rate limit (requests per minute) |
+| `ADMIN_PHONE`                          | `0000000000`        | Default admin phone number       |
+| `ADMIN_EMAIL`                          | `admin@example.com` | Default admin email              |
+| `ADMIN_PASSWORD`                       | -                   | Default admin password           |
 
 ### Default Admin User
 
@@ -412,6 +479,37 @@ docker run -d \
 - **Database connection**: Automated health checks in docker-compose
 - **Redis connectivity**: Connection validation on startup
 
+## Security
+
+Security is a top priority for the Auth Service. We follow industry best practices and maintain a comprehensive security policy.
+
+### Security Features
+
+- **Argon2 Password Hashing**: Industry-standard secure password hashing
+- **JWT Token Management**: Stateless tokens with blacklisting capability
+- **Rate Limiting**: Configurable request throttling (default: 20 req/min)
+- **Input Validation**: Comprehensive validation using Pydantic
+- **OAuth Security**: Secure Google OAuth 2.0 implementation
+- **Database Security**: Minimal privilege database users
+- **Session Management**: Redis-based secure session handling
+
+### Security Policy
+
+For detailed security information, vulnerability reporting, and best practices, please see our [Security Policy](SECURITY.md).
+
+**Important**: 
+- Never commit secrets to version control
+- Use strong, unique secrets for `AUTHJWT_SECRET_KEY`
+- Change default admin credentials in production
+- Enable HTTPS in production environments
+- Regularly update dependencies and security patches
+
+### Reporting Security Issues
+
+**Please do not report security vulnerabilities through public GitHub issues.**
+
+Instead, please report them via email to: [bazhenov.in@gmail.com](mailto:bazhenov.in@gmail.com) with the subject `[SECURITY] Auth Service Vulnerability Report`.
+
 ## Contributing
 
 1. Fork the repository
@@ -436,7 +534,21 @@ docker run -d \
 
 ## License
 
-This project is part of the RooRoute platform. All rights reserved.
+This project is licensed under the Apache License 2.0 - see the [LICENSE.md](LICENSE.md) file for details.
+
+Copyright 2025 Ivan Bazhenov
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 ## Authors
 
