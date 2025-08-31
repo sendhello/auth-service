@@ -6,7 +6,7 @@
 [![Tests](https://github.com/sendhello/auth-service/workflows/Tests/badge.svg)](https://github.com/sendhello/auth-service/actions)
 [![CodeQL](https://github.com/sendhello/auth-service/actions/workflows/codeql.yml/badge.svg)](https://github.com/sendhello/auth-service/actions/workflows/codeql.yml)
 
-A comprehensive authentication and authorization microservice built with FastAPI, designed for modern multi-tenant applications within the RooRoute platform.
+A comprehensive authentication and authorization microservice built with FastAPI, designed for modern multi-tenant applications.
 
 ## Table of Contents
 
