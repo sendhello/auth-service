@@ -218,6 +218,13 @@ curl -X POST "http://localhost:8000/api/v1/google/auth" \
   -d '{"code": "google-oauth-code-from-frontend"}'
 ```
 
+### Swagger Interface Preview
+
+![Swagger API Documentation](swagger.png)
+
+*Interactive API documentation interface showing all available endpoints, request/response schemas, and the ability to test API calls directly from the browser.*
+
+
 ## API Documentation
 
 Once the service is running, you can access:
